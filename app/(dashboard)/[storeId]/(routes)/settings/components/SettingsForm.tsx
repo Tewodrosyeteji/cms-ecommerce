@@ -1,6 +1,8 @@
 "use client";
 
+import AlertModal from "@/components/modals/AlertModal";
 import Heading from "@/components/ui/Heading";
+import ApiAlert from "@/components/ui/apiAlert";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -8,14 +10,19 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import useOrigin from "@/hooks/useOrigin";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Store } from "@prisma/client";
+import axios from "axios";
 import { Trash } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-hot-toast";
 import * as z from "zod";
 
 type SettingsFormProps = {
@@ -29,18 +36,52 @@ const formSchema = z.object({
 type SettingFormValue = z.infer<typeof formSchema>;
 
 const SettingsForm: React.FC<SettingsFormProps> = ({ initialData }) => {
+  const params = useParams();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const origin = useOrigin();
   const form = useForm<SettingFormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData,
   });
 
   const onSubmit = async (data: SettingFormValue) => {
-    console.log(data);
+    try {
+      setLoading(true);
+
+      await axios.patch(`/api/stores/${params.storeId}`, data);
+      router.refresh();
+      toast.success("Store updated");
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onDelete = async () => {
+    try {
+      setLoading(true);
+      await axios.delete(`/api/stores/${params.storeId}`);
+      router.refresh();
+      router.push("/");
+      toast.success("Deleted successfully");
+    } catch (error) {
+      toast.error("Make sure delete all categorys and paroduct first");
+    } finally {
+      setLoading(false);
+      setOpen(false);
+    }
   };
   return (
     <>
+      <AlertModal
+        isOpen={open}
+        onConfirm={onDelete}
+        onClose={() => setOpen(false)}
+        loading={loading}
+      />
       <div className="flex items-center justify-between">
         <Heading title="Setttings" description="Manage Store Preferences" />
         <Button
@@ -72,6 +113,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ initialData }) => {
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -81,6 +123,11 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ initialData }) => {
           </Button>
         </form>
       </Form>
+      <ApiAlert
+        title="NEXT_PUBLIC_API_URL"
+        description={`${origin}/api/${params.storeId}`}
+        variant="public"
+      />
     </>
   );
 };
