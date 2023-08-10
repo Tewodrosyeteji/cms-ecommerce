@@ -1,5 +1,6 @@
 import prismadb from "@/lib/prismadb";
 import React from "react";
+import BillboardForm from "./components/BillboardForm";
 
 type Props = {};
 
@@ -13,7 +14,13 @@ const BillboardPage = async ({
       id: params.billboardId,
     },
   });
-  return <div>ExistingBillboard:{billboard?.label}</div>;
+  return (
+    <div className="flex-col">
+      <div className="flex-1 space-y-4 p-8 pt-6">
+        <BillboardForm initialData={billboard} />
+      </div>
+    </div>
+  );
 };
 
 export default BillboardPage;
