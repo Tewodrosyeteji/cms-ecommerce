@@ -49,6 +49,10 @@ export const columns: ColumnDef<ProductColumn>[] = [
       </div>
     ),
   },
+  {
+    accessorKey: "price",
+    header: "Price",
+  },
 
   {
     accessorKey: "createdAt",

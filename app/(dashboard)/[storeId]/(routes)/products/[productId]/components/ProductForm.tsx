@@ -26,7 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import useOrigin from "@/hooks/useOrigin";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Category, Color, Product, Size } from "@prisma/client";
+import { Category, Color, Image, Product, Size } from "@prisma/client";
 import axios from "axios";
 import { Trash } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -36,7 +36,11 @@ import { toast } from "react-hot-toast";
 import * as z from "zod";
 
 type ProductFormProps = {
-  initialData: Product | null;
+  initialData:
+    | (Product & {
+        images: Image[];
+      })
+    | null;
   categories: Category[];
   sizes: Size[];
   colors: Color[];
@@ -163,6 +167,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <FormControl>
                   <ImageUpload
                     value={field.value.map((image) => image.url)}
+                    disabled={loading}
                     onChange={(url) =>
                       field.onChange([...field.value, { url }])
                     }
@@ -171,7 +176,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         ...field.value.filter((current) => current.url !== url),
                       ])
                     }
-                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
